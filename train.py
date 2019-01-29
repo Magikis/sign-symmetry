@@ -105,7 +105,6 @@ parser.add_argument('--seed', default=None, type=int,
                     help='seed for initializing training. ')
 parser.add_argument('--gpu', default=None, type=int,
                     help='GPU id to use.')
-
 best_prec1 = 0
 
 
@@ -151,7 +150,8 @@ def main():
         assert args.arch.startswith('resnet') or args.arch.startswith('alexnet'),\
             'only resnets or alexnet supported'
         if args.pretrained:
-            raise ValueError("Using non-standard models but pretrained set to True")
+            raise ValueError(
+                "Using non-standard models but pretrained set to True")
         print("=> creating asymmetric feedback model '{}' ".format(args.arch) +
               "with non-last layer af_algo '{}' and last layer af_algo '{}'".
               format(args.algo, args.last_layer_algo))
@@ -175,21 +175,27 @@ def main():
         if args.arch.startswith('resnet'):
             model_last_named_parameters = list(model.fc.named_parameters())
         elif args.arch.startswith('alexnet'):
-            model_last_named_parameters = list(model.classifier[-1].named_parameters())
+            model_last_named_parameters = list(
+                model.classifier[-1].named_parameters())
     else:
         if args.arch.startswith('resnet'):
-            model_last_named_parameters = list(model.module.fc.named_parameters())
+            model_last_named_parameters = list(
+                model.module.fc.named_parameters())
         elif args.arch.startswith('alexnet'):
             if args.distributed:
-                model_last_named_parameters = list(model.module.classifier[-1].named_parameters())
+                model_last_named_parameters = list(
+                    model.module.classifier[-1].named_parameters())
             else:
-                model_last_named_parameters = list(model.classifier[-1].named_parameters())
+                model_last_named_parameters = list(
+                    model.classifier[-1].named_parameters())
 
-    model_last_parameters = [nparam[1] for nparam in model_last_named_parameters]
+    model_last_parameters = [nparam[1]
+                             for nparam in model_last_named_parameters]
     model_nonlast_named_parameters = \
         [nparam for nparam in model.named_parameters()
          if not any([nparam[1] is p_last for p_last in model_last_parameters])]
-    model_nonlast_parameters = [nparam[1] for nparam in model_nonlast_named_parameters]
+    model_nonlast_parameters = [nparam[1]
+                                for nparam in model_nonlast_named_parameters]
 
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda(args.gpu)
@@ -228,7 +234,8 @@ def main():
                 'no_sign_change': use_nsc_,
             })
             lrs.append(lr)
-    optimizer = BMNSC_SGD(param_groups, momentum=args.momentum, weight_decay=args.weight_decay)
+    optimizer = BMNSC_SGD(param_groups, momentum=args.momentum,
+                          weight_decay=args.weight_decay)
 
     # optionally resume from a checkpoint
     if args.resume:
@@ -248,27 +255,35 @@ def main():
     cudnn.benchmark = True
 
     # Data loading code
-    traindir = os.path.join(args.data, 'train')
-    valdir = os.path.join(args.data, 'val')
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
+    if args.data == 'CIFAR':
+        train_dataset = datasets.CIFAR10('/data/CIFAR', download=True)
+        traindir = '/data/CIFAR/train'
+        valdir = '/data/CIFAR/val'
 
-    train_dataset = datasets.ImageFolder(
-        traindir,
-        transforms.Compose([
-            transforms.RandomResizedCrop(224),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            normalize,
-        ]))
+    else:
+        traindir = os.path.join(args.data, 'train')
+        valdir = os.path.join(args.data, 'val')
+        normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                         std=[0.229, 0.224, 0.225])
+
+        train_dataset = datasets.ImageFolder(
+            traindir,
+            transforms.Compose([
+                transforms.RandomResizedCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                normalize,
+            ]))
 
     if args.distributed:
-        train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
+        train_sampler = torch.utils.data.distributed.DistributedSampler(
+            train_dataset)
     else:
         train_sampler = None
 
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
+        train_dataset, batch_size=args.batch_size, shuffle=(
+            train_sampler is None),
         num_workers=args.workers, pin_memory=True, sampler=train_sampler)
 
     val_loader = torch.utils.data.DataLoader(
@@ -354,8 +369,8 @@ def train(train_loader, model, criterion, optimizer, epoch):
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                   'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
                   'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-                   epoch, i, len(train_loader), batch_time=batch_time,
-                   data_time=data_time, loss=losses, top1=top1, top5=top5))
+                      epoch, i, len(train_loader), batch_time=batch_time,
+                      data_time=data_time, loss=losses, top1=top1, top5=top5))
 
 
 def validate(val_loader, model, criterion):
@@ -394,8 +409,8 @@ def validate(val_loader, model, criterion):
                       'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                       'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
                       'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-                       i, len(val_loader), batch_time=batch_time, loss=losses,
-                       top1=top1, top5=top5))
+                          i, len(val_loader), batch_time=batch_time, loss=losses,
+                          top1=top1, top5=top5))
 
         print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'
               .format(top1=top1, top5=top5))
@@ -406,14 +421,17 @@ def validate(val_loader, model, criterion):
 def save_checkpoint(state, is_best, epoch, filename='checkpoint.pth.tar'):
     torch.save(state, os.path.join(args.prefix, filename))
     if is_best:
-        shutil.copyfile(filename, os.path.join(args.prefix, 'model_best.pth.tar'))
+        shutil.copyfile(filename, os.path.join(
+            args.prefix, 'model_best.pth.tar'))
     if args.save_every_epoch \
             or (args.save_every_n_epochs > 0 and epoch % args.save_every_n_epochs == 0):
-        shutil.copyfile(filename, os.path.join(args.prefix, 'epoch%03d.pth.tar' % epoch))
+        shutil.copyfile(filename, os.path.join(
+            args.prefix, 'epoch%03d.pth.tar' % epoch))
 
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
+
     def __init__(self):
         self.reset()
 
