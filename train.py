@@ -267,7 +267,7 @@ def main():
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 normalize,
-            ])
+            ]),
             download=True)
         traindir = '/data/CIFAR/train'
         valdir = '/data/CIFAR/val'
