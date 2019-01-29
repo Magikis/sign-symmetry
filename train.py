@@ -260,8 +260,10 @@ def main():
         std=[0.229, 0.224, 0.225]
     )
     if args.data == 'CIFAR':
+        traindir = '/data/CIFAR/train'
+        valdir = '/data/CIFAR/val'
         train_dataset = datasets.CIFAR10(
-            '/data/CIFAR',
+            traindir,
             transform=transforms.Compose([
                 transforms.RandomResizedCrop(224),
                 transforms.RandomHorizontalFlip(),
@@ -269,8 +271,6 @@ def main():
                 normalize,
             ]),
             download=True)
-        traindir = '/data/CIFAR/train'
-        valdir = '/data/CIFAR/val'
 
     else:
         traindir = os.path.join(args.data, 'train')
