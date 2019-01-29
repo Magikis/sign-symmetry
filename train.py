@@ -255,16 +255,26 @@ def main():
     cudnn.benchmark = True
 
     # Data loading code
+    normalize = transforms.Normalize(
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225]
+    )
     if args.data == 'CIFAR':
-        train_dataset = datasets.CIFAR10('/data/CIFAR', download=True)
+        train_dataset = datasets.CIFAR10(
+            '/data/CIFAR',
+            transform=transforms.Compose([
+                transforms.RandomResizedCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                normalize,
+            ])
+            download=True)
         traindir = '/data/CIFAR/train'
         valdir = '/data/CIFAR/val'
 
     else:
         traindir = os.path.join(args.data, 'train')
         valdir = os.path.join(args.data, 'val')
-        normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                         std=[0.229, 0.224, 0.225])
 
         train_dataset = datasets.ImageFolder(
             traindir,
@@ -273,7 +283,8 @@ def main():
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 normalize,
-            ]))
+            ])
+        )
 
     if args.distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(
