@@ -262,28 +262,55 @@ def main():
     if args.data == 'CIFAR':
         traindir = '/data/CIFAR/train'
         valdir = '/data/CIFAR/val'
+        
+        transform_train = transforms.Compose([
+            transforms.RandomCrop(32, padding=4),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465),
+                                 (0.2023, 0.1994, 0.2010)),
+        ])
+
+        transform_test = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465),
+                                 (0.2023, 0.1994, 0.2010)),
+        ])
         train_dataset = datasets.CIFAR10(
             traindir,
-            transform=transforms.Compose([
-                transforms.RandomResizedCrop(224),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                normalize,
-            ]),
+            train=True,
+            transform=transform_train,
             download=True)
+        test_dataset = datasets.CIFAR10(
+            valdir,
+            train=False,
+            transform=transform_test,
+            download=True
+        )
 
     else:
         traindir = os.path.join(args.data, 'train')
         valdir = os.path.join(args.data, 'val')
+        transform_train = transforms.Compose([
+            transforms.RandomResizedCrop(224),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            normalize,
+        ])
+        transform_test = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            normalize,
+        ])
 
         train_dataset = datasets.ImageFolder(
             traindir,
-            transforms.Compose([
-                transforms.RandomResizedCrop(224),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                normalize,
-            ])
+            transform_train
+        )
+        test_dataset = datasets.ImageFolder(
+            valdir,
+            transform_test
         )
 
     if args.distributed:
@@ -298,12 +325,7 @@ def main():
         num_workers=args.workers, pin_memory=True, sampler=train_sampler)
 
     val_loader = torch.utils.data.DataLoader(
-        datasets.ImageFolder(valdir, transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            normalize,
-        ])),
+        test_dataset,
         batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
