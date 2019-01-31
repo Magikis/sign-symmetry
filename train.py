@@ -378,7 +378,6 @@ def train(train_loader, model, criterion, optimizer, epoch):
         target = target.cuda(args.gpu, non_blocking=True)
 
         # compute output
-        print(input.size())
         output = model(input)
         loss = criterion(output, target)
 
