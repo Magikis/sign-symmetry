@@ -115,7 +115,7 @@ def main():
 
     os.makedirs(args.prefix, exist_ok=True)
     if args.algo == 'None':
-        import torchvision.models as models
+        import pytorch_models as models
     else:
         import models
 
