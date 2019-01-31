@@ -119,8 +119,8 @@ class AsymmetricFeedbackResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2, af_algo=af_algo)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2, af_algo=af_algo)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2, af_algo=af_algo)
-        self.avgpool = nn.AvgPool2d(7, stride=1)
-        # self.avgpool = lambda x: x
+        # self.avgpool = nn.AvgPool2d(7, stride=1)
+        self.avgpool = nn.AvgPool2d(4, stride=1)
         if last_layer_af_algo is None or last_layer_af_algo == 'None':
             self.fc = nn.Linear(512 * block.expansion, num_classes)
         else:
