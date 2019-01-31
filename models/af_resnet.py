@@ -110,8 +110,8 @@ class AsymmetricFeedbackResNet(nn.Module):
     def __init__(self, block, layers, af_algo, num_classes=1000, last_layer_af_algo=None):
         self.inplanes = 64
         super(AsymmetricFeedbackResNet, self).__init__()
-        self.conv1 = AFConv2d(3, 64, kernel_size=7, stride=2, padding=3,
-                              bias=False, algo=af_algo)
+        # self.conv1 = AFConv2d(3, 64, kernel_size=7, stride=2, padding=3,bias=False, algo=af_algo)
+        self.conv1 = AFConv2d(3, 64, kernel_size=3, stride=1, padding=1,bias=False, algo=af_algo)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
@@ -119,8 +119,8 @@ class AsymmetricFeedbackResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2, af_algo=af_algo)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2, af_algo=af_algo)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2, af_algo=af_algo)
-        # self.avgpool = nn.AvgPool2d(7, stride=1)
-        self.avgpool = lambda x: x
+        self.avgpool = nn.AvgPool2d(7, stride=1)
+        # self.avgpool = lambda x: x
         if last_layer_af_algo is None or last_layer_af_algo == 'None':
             self.fc = nn.Linear(512 * block.expansion, num_classes)
         else:
@@ -156,7 +156,7 @@ class AsymmetricFeedbackResNet(nn.Module):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
-        x = self.maxpool(x)
+        # x = self.maxpool(x)
 
         x = self.layer1(x)
         x = self.layer2(x)
