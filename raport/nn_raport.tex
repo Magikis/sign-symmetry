@@ -1,0 +1,94 @@
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2019_conference,times}
+\usepackage{graphicx,tikz} 
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+
+\usepackage{hyperref}
+\usepackage{url}
+
+
+\title{Biologically-Plausible Learning\\ Algorithms Can Scale To Large Datasets \\
+\small{REPRODUCTION RAPORT FOR ICLR 2019}}
+
+% Authors must not appear in the submitted version. They should be hidden
+% as long as the \iclrfinalcopy macro remains commented out below.
+% Non-anonymous submissions will be rejected without review.
+
+\author{Zuzanna Kasprzak, Kacper Kulczak, Filip Marcinek} 
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+\begin{document}
+
+
+\maketitle
+
+\begin{abstract}
+This project is an attept to a reproduction of the paper \textit{Biologically-Plausible Learning Algorithms Can Scale To Large Datasets} by Will Xiao, Honglin Chen, Qianli Liao, Tomaso Poggio: \url{https://openreview.net/forum?id=SygvZ209F7&fbclid=IwAR0fwm-REeNdstIY2iQBTNe2apAHtqhfmlwdDQewwAjP0ZAYP714M8rGM0k}.
+\end{abstract}
+
+\section{Introduction}
+
+Authors of the paper stated that the backpropagation, as it requires symmetric weight matrices in the feedforward and feedback paths, is often thought to be biologically implausible. They mentioned that there exists some biologically-plausible algorithms, which perform well on small datasets (e.g. MNIST, CIFAR10), but on the big ones they give much worse results. They present the sign-symmetry algorithm, which differs from already known algorithms in not sharing magnitudes but only signs in both feedback and feedforward weights. This algorithm is claimed to have satisfying result on large datasets.
+
+
+\section{Results}
+We tried to test the sign-symmetry on the big datasets (as in the paper) for example ImageNet, yet we did not have enough computing power. Therefore we tested it on the smaller one, that is CIFAR10.
+(Authors haven't mentioned the correctness and effectivity on smaller datasets.)
+
+We performed our computations on Google Cloud Platform using students' credits.
+
+Our code and logs are available here: \url{https://github.com/Magikis/sign-symmetry}.
+
+
+\subsection{Results on CIFAR10}
+We adapted authors' implementation to the dataset CIFAR10 and tested it on ResNet-18 architecture.
+Adjusting the implementation to this dataset on given architecture we were basing on \url{https://github.com/kuangliu/pytorch-cifar/blob/master/models/resnet.py}.
+
+Firstly, we noticed that feedback alignment algorithm doesn't perform well on CIFAR10 as it was said in the paper. However sign-symmetry gives really good results. It is actually not much worse than the backpropagation. From 10th epoch error rates of both backpropagation and sign-symmetry stabilize and maintain the constant small values close to each other.
+\newpage
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=11cm]{CIFAR10_results.png}
+	\caption{\textit{Comparison of different algorithms performance on CIFAR10}}
+\end{figure}
+
+\subsection{Results on ImageNet}
+We made an attempt to test the sign-symmetry on ImageNet. Here we provide some of our results. Unfortunately we didn't succeed due to the small amount of computing power and GCP credits. 
+
+
+\section{Remarks to the paper}
+We noticed little misprint in the paper in one of the equations describing sign-symmetry method (page 2, equation 2).
+
+The proper version is
+$$
+\frac{\delta E}{\delta x_i} = \sum_j B_{ij}f'(\sigma_j)\frac{\delta E}{\delta{y_i}}
+$$ 
+whereas in the original version the sum is taken over $i$.
+
+\section{Summary}
+Despite the fact, we didn't succeed in testing the sign-symmetry algorithm on large datasets, we also claim it works suprisingly well. On both small datasets (CIFAR10 in our reproduction) and larger ones (ImageNet, MS COCO in the original paper) the results of sign-symmetry are very close to the backpropagation. It might truly give a prespective of creating biologically-plausible neutral networks, but verifying it is beyond our capabilities.
+
+
+
+
+
+
+\bibliography{iclr2019_conference}
+\bibliographystyle{iclr2019_conference}
+%\item \textit{Biologically-Plausible Learning Algorithms Can Scale To Large Datasets}
+
+
+\end{document}
